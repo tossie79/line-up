@@ -113,9 +113,6 @@ pytest
 # Run with verbose output
 pytest -v
 
-# Run with coverage report
-pytest --cov=app --cov-report=term-missing
-
 # Run only unit tests (fast)
 pytest -m "not integration"
 
