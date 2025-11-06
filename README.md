@@ -100,6 +100,7 @@ lineup-user-api/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
+├── .env.example
 ```
 
 ## Testing ##
