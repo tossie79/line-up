@@ -1,4 +1,3 @@
-# tests/test_user_service.py
 import pytest
 import httpx
 from unittest.mock import AsyncMock, patch
