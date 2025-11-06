@@ -90,7 +90,7 @@ class UserService:
                 try:
                     users.append(User(**user_data))
                 except Exception as e:
-                    print(f"⚠️ Skipping invalid user data: {e}")
+                    print(f" Skipping invalid user data: {e}")
                     continue  # Skip invalid users but continue processing
 
             return UserList(

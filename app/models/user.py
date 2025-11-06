@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    """Model representing a user with an ID."""
+    """Response Model representing a user with an ID."""
 
     id: int
 
