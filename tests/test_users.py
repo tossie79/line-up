@@ -5,6 +5,7 @@ from app.main import app
 
 client = TestClient(app)
 
+
 def test_root_endpoint():
     """Test root endpoint"""
     response = client.get("/")
@@ -13,12 +14,14 @@ def test_root_endpoint():
     assert "message" in data
     assert "Line-Up User API" in data["message"]
 
+
 def test_health_check():
     """Test health check endpoint"""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
+
 
 def test_get_all_users():
     """Test getting all users"""
@@ -29,6 +32,7 @@ def test_get_all_users():
     assert "page" in data
     assert "total" in data
 
+
 def test_get_user_by_id():
     """Test getting user by ID"""
     response = client.get("/api/v1/user/1")
@@ -38,6 +42,7 @@ def test_get_user_by_id():
     assert "email" in data
     assert "first_name" in data
     assert "last_name" in data
+
 
 def test_get_nonexistent_user():
     """Test getting a user that doesn't exist"""
