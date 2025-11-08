@@ -40,7 +40,7 @@ async def test_get_all_users_success():
     """Test successful get_all_users call (mocked _make_request)"""
     mock_response_data = {
         "page": 1,
-        "per_page": 6,  
+        "per_page": 6,
         "total": 12,
         "total_pages": 2,
         "data": [

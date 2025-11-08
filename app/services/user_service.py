@@ -3,6 +3,7 @@ from typing import Optional, List
 from app.core.config import settings
 from app.core.exceptions import ExternalAPIError, UserNotFoundError
 from app.models.user import User, UserList
+from app.core.logger import logger
 
 
 class UserService:
@@ -40,28 +41,35 @@ class UserService:
         headers = self._build_headers()
 
         try:
-            print(f" Making request to {url}")
+            logger.info(f"Making request to {url}")
 
             response = await self.client.get(url, headers=headers)
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 401:
+                logger.error("Invalid API key - unauthorized")
                 raise ExternalAPIError("Invalid API key - unauthorized")
             elif e.response.status_code == 403:
+                logger.error("API key missing or insufficient permissions")
                 raise ExternalAPIError("API key missing or insufficient permissions")
             elif e.response.status_code == 404:
                 user_id = endpoint.split("/")[-1]
                 if user_id.isdigit():
+                    logger.warning(f"User not found: {user_id}")
                     raise UserNotFoundError(int(user_id))
+                logger.error("Resource not found")
                 raise ExternalAPIError("Resource not found")
             elif e.response.status_code == 429:
+                logger.error("Rate limit exceeded")
                 raise ExternalAPIError("Rate limit exceeded")
             else:
+                logger.error(f"External API returned {e.response.status_code}")
                 raise ExternalAPIError(
                     f"External API returned {e.response.status_code}"
                 )
         except httpx.RequestError as e:
+            logger.error(f"Request failed: {str(e)}")
             raise ExternalAPIError(f"Request failed: {str(e)}")
 
     async def get_all_users(self, page: int = 1) -> UserList:
@@ -78,21 +86,16 @@ class UserService:
             if "data" not in data:
                 raise ExternalAPIError("Invalid response structure from external API")
 
-            # Validate we have the basic structure
-            required_fields = ["page", "per_page", "total", "total_pages"]
-            for field in required_fields:
-                if field not in data:
-                    print(f" Missing field {field} in API response, using default")
-
             # Process users with individual error handling
             users: List[User] = []
             for user_data in data["data"]:
                 try:
                     users.append(User(**user_data))
                 except Exception as e:
-                    print(f" Skipping invalid user data: {e}")
+                    logger.warning(f"Skipping invalid user data: {e}")
                     continue  # Skip invalid users but continue processing
 
+            logger.info(f"Retrieved {len(users)} users from page {page}")
             return UserList(
                 page=data.get("page", page),
                 per_page=data.get("per_page", 0),
@@ -102,7 +105,7 @@ class UserService:
             )
 
         except ExternalAPIError as e:
-            print(f" Error fetching users for page {page}: {e}")
+            logger.error(f"Error fetching users for page {page}: {e}")
             raise
 
     async def get_user_by_id(self, user_id: int) -> User:
@@ -117,12 +120,15 @@ class UserService:
             data = await self._make_request(endpoint)
 
             if "data" not in data:
+                logger.warning(f"User not found: {user_id}")
                 raise UserNotFoundError(user_id)
 
+            logger.info(f"Retrieved user {user_id}")
             return User(**data["data"])
 
         except UserNotFoundError:
+            logger.warning(f"User not found: {user_id}")
             raise
         except ExternalAPIError as e:
-            print(f" Error fetching user by ID {user_id}: {e}")
+            logger.error(f"Error fetching user {user_id}: {e}")
             raise
